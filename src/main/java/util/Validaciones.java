@@ -2,6 +2,7 @@ package util;
 
 public class Validaciones {
 
+    //METODO DE VALIDACION PARA VER SI UN STRING ES UN NUMERO, DEVUELVE TRUE SI ES UN NUMERO Y FALSE SI NO LO ES
     public static boolean es_numero (String texto) {
 
         if (texto == null){
@@ -21,6 +22,7 @@ public class Validaciones {
         }
     }
 
+    //METODO DE VALIDACION PARA VER SI UN STRING ES SOLO TEXTO, DEVUELVE TRUE SI ES SOLO TEXTO Y FALSE SI NO LO ES
     public static boolean es_texto (String texto) {
 
         if (texto == null) {
@@ -34,6 +36,7 @@ public class Validaciones {
         return texto.matches("[a-zA-Z ]+");
     }
 
+    //METODO DE VALIDACION PARA VER SI UN STRING ES UN ENTERO, DEVUELVE TRUE SI ES UN ENTERO Y FALSE SI NO LO ES
     public static boolean es_entero (String texto){
         if(texto == null){
             return false;
@@ -50,6 +53,8 @@ public class Validaciones {
             return false;
         }
     }
+
+    //METODO DE VALIDACION PARA VER SI UN STRING ES UN TELEFONO, DEVUELVE TRUE SI ES UN TELEFONO Y FALSE SI NO LO ES
     
     public static boolean es_telefono(String texto){
 

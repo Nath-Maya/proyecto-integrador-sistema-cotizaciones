@@ -41,6 +41,7 @@ public class Archivo{
             return bd;
 
         } 
+        // Manejar la excepción si el archivo no existe, en cuyo caso se devuelve una nueva instancia de BaseDatos
         catch (FileNotFoundException e) {
             System.out.println("No existe archivo");
             return new BaseDatos();
