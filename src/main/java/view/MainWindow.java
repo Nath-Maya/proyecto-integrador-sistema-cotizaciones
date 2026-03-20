@@ -115,25 +115,37 @@ public class MainWindow extends JFrame {
 
     private void onRegistrar() {
         JPanel p = new JPanel(new GridLayout(0,1));
-        JTextField nitF = new JTextField();
+        JTextField documentoF = new JTextField();
         JTextField nombreF = new JTextField();
-        JTextField direccionF = new JTextField();
         JTextField correoF = new JTextField();
         JTextField telefonoF = new JTextField();
-        JPasswordField passF = new JPasswordField();
+        JTextField direccionF = new JTextField();
 
-        p.add(new JLabel("Nit:")); p.add(nitF);
-        p.add(new JLabel("Nombre empresa:")); p.add(nombreF);
-        p.add(new JLabel("Direccion:")); p.add(direccionF);
+        p.add(new JLabel("Documento:")); p.add(documentoF);
+        p.add(new JLabel("Nombre cliente:")); p.add(nombreF);
         p.add(new JLabel("Correo:")); p.add(correoF);
         p.add(new JLabel("Telefono:")); p.add(telefonoF);
-        p.add(new JLabel("Contraseña:")); p.add(passF);
+        p.add(new JLabel("Direccion:")); p.add(direccionF);
 
-        int res = JOptionPane.showConfirmDialog(this, p, "Registrar empresa", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        int res = JOptionPane.showConfirmDialog(this, p, "Registrar cliente", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (res == JOptionPane.OK_OPTION) {
-            boolean ok = controller.registrarEmpresa(nitF.getText().trim(), nombreF.getText().trim(), direccionF.getText().trim(), correoF.getText().trim(), telefonoF.getText().trim(), new String(passF.getPassword()));
-            if (ok) JOptionPane.showMessageDialog(this, "Empresa registrada correctamente", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-            else JOptionPane.showMessageDialog(this, "Ya existe una empresa con ese NIT", "Error", JOptionPane.ERROR_MESSAGE);
+            try {
+                boolean ok = controller.registrarCliente(
+                        documentoF.getText().trim(),
+                        nombreF.getText().trim(),
+                        correoF.getText().trim(),
+                        telefonoF.getText().trim(),
+                        direccionF.getText().trim()
+                );
+
+                if (ok) {
+                    JOptionPane.showMessageDialog(this, "Cliente registrado correctamente", "Éxito", JOptionPane.PLAIN_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Ya existe un cliente con ese documento", "Error", JOptionPane.PLAIN_MESSAGE);
+                }
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Validación", JOptionPane.PLAIN_MESSAGE);
+            }
         }
     }
 
@@ -235,21 +247,6 @@ public class MainWindow extends JFrame {
             lbl.setBackground(Color.DARK_GRAY);
         }
         return lbl;
-    }
-
-    private JButton styledButton(String text, Color bg) {
-        JButton b = new JButton(text);
-        b.setBackground(bg);
-        b.setForeground(Color.WHITE);
-        b.setFocusPainted(false);
-        b.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        b.setOpaque(true);
-        b.setAlignmentX(Component.CENTER_ALIGNMENT);
-        b.setMaximumSize(new Dimension(300, 40));
-        Border line = new LineBorder(Color.DARK_GRAY, 2, true);
-        Border empty = new EmptyBorder(8,12,8,12);
-        b.setBorder(new CompoundBorder(line, empty));
-        return b;
     }
 
     private JButton styledButtonWithBorder(String text, Color bg, Color borderColor) {

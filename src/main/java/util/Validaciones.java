@@ -72,4 +72,15 @@ public class Validaciones {
         }
         return texto.matches("^[A-Za-z0-9+_.-]+@(.+)$");
     }
+
+    public static boolean es_documento(String texto) {
+        if (texto == null) {
+            return false;
+        }
+        String limpio = texto.trim();
+        if (limpio.isEmpty()) {
+            return false;
+        }
+        return limpio.matches("\\d{5,15}");
+    }
 }

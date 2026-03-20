@@ -1,7 +1,10 @@
 package controller;
 
 import model.*;
+import repository.ClienteRepository;
+import repository.FileClienteRepository;
 import util.Archivo;
+import util.Validaciones;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +12,7 @@ import java.util.List;
 public class AppController {
     private BaseDatos bd;
     private CostosMateriaPrima costos;
+    private ClienteRepository clienteRepository;
 
     private double costo_tinta = 0;
     private double porcentaje_perdida = 0;
@@ -22,6 +26,7 @@ public class AppController {
         // Cargar datos persistidos
         bd = Archivo.cargar();
         costos = new CostosMateriaPrima();
+        clienteRepository = new FileClienteRepository();
     }
 
     // App-level login (dos usuarios permitidos)
@@ -43,6 +48,42 @@ public class AppController {
     }
 
     public String getAppUser() { return this.appUser; }
+
+    public boolean registrarCliente(String documento, String nombre, String correo, String telefono, String direccion) {
+        if (!Validaciones.es_documento(documento)) {
+            throw new IllegalArgumentException("El documento debe tener entre 5 y 15 dígitos");
+        }
+        if (!Validaciones.es_texto(nombre)) {
+            throw new IllegalArgumentException("El nombre debe contener solo letras");
+        }
+        if (!Validaciones.es_correo(correo)) {
+            throw new IllegalArgumentException("El correo no es válido");
+        }
+        if (!Validaciones.es_telefono(telefono)) {
+            throw new IllegalArgumentException("El teléfono no es válido");
+        }
+        if (direccion == null || direccion.trim().isEmpty()) {
+            throw new IllegalArgumentException("La dirección es obligatoria");
+        }
+
+        Cliente cliente = new Cliente(
+                documento.trim(),
+                nombre.trim(),
+                correo.trim(),
+                telefono.trim(),
+                direccion.trim()
+        );
+
+        return clienteRepository.guardar(cliente);
+    }
+
+    public Cliente buscarCliente(String documento) {
+        return clienteRepository.buscarPorDocumento(documento);
+    }
+
+    public List<Cliente> listarClientes() {
+        return clienteRepository.listar();
+    }
 
     public boolean registrarEmpresa(String nit, String nombre, String direccion, String correo, String telefono, String contrasena) {
         if (bd.buscar_por_nit(nit) != null) {
