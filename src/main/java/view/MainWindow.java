@@ -1,10 +1,13 @@
 package view;
 
 import controller.AppController;
+import model.Cliente;
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.File;
+import java.util.List;
 
 public class MainWindow extends JFrame {
 
@@ -180,34 +183,78 @@ public class MainWindow extends JFrame {
     }
 
     private void onGenerarCotizacion() {
+        List<Cliente> clientes = controller.listarClientes();
+        if (clientes.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No hay clientes registrados. Registra un cliente primero.", "Información", JOptionPane.PLAIN_MESSAGE);
+            return;
+        }
+
         JPanel p = new JPanel(new GridLayout(0,1));
+
+        JComboBox<Cliente> clienteCombo = new JComboBox<>(clientes.toArray(new Cliente[0]));
+        clienteCombo.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Cliente) {
+                    lbl.setText(((Cliente) value).getNombre());
+                }
+                return lbl;
+            }
+        });
+
+        String[] columns = {"Documento", "Correo", "Teléfono", "Dirección"};
+        DefaultTableModel model = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        JTable clienteTable = new JTable(model);
+        clienteTable.setRowHeight(22);
+        JScrollPane tableScroll = new JScrollPane(clienteTable);
+        tableScroll.setPreferredSize(new Dimension(420, 70));
+
+        Runnable refreshTable = () -> {
+            model.setRowCount(0);
+            Cliente c = (Cliente) clienteCombo.getSelectedItem();
+            if (c != null) {
+                model.addRow(new Object[]{c.getDocumento(), c.getCorreo(), c.getTelefono(), c.getDireccion()});
+            }
+        };
+        clienteCombo.addActionListener(e -> refreshTable.run());
+        refreshTable.run();
+
         JTextField anchoF = new JTextField();
         JTextField altoF = new JTextField();
         JTextField materialF = new JTextField();
         JTextField tipoF = new JTextField();
-        JTextField nitF = new JTextField();
 
+        p.add(new JLabel("Cliente:")); p.add(clienteCombo);
+        p.add(new JLabel("Datos del cliente:")); p.add(tableScroll);
         p.add(new JLabel("Ancho:")); p.add(anchoF);
         p.add(new JLabel("Alto:")); p.add(altoF);
         p.add(new JLabel("Material:")); p.add(materialF);
         p.add(new JLabel("Tipo de impresión:")); p.add(tipoF);
-        p.add(new JLabel("NIT cliente (opcional):")); p.add(nitF);
 
         int res = JOptionPane.showConfirmDialog(this, p, "Generar cotización", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (res == JOptionPane.OK_OPTION) {
             try {
+                Cliente seleccionado = (Cliente) clienteCombo.getSelectedItem();
+                if (seleccionado == null) {
+                    JOptionPane.showMessageDialog(this, "Debes seleccionar un cliente", "Validación", JOptionPane.PLAIN_MESSAGE);
+                    return;
+                }
+
                 double ancho = Double.parseDouble(anchoF.getText().trim());
                 double alto = Double.parseDouble(altoF.getText().trim());
                 String material = materialF.getText().trim();
                 String tipo = tipoF.getText().trim();
-                String nit = nitF.getText().trim();
 
-                if (nit.isEmpty()) nit = null;
-
-                double costo = controller.cotizar(ancho, alto, material, tipo, nit);
-                JOptionPane.showMessageDialog(this, "Cotización: " + costo, "Resultado", JOptionPane.INFORMATION_MESSAGE);
+                double costo = controller.cotizar(ancho, alto, material, tipo);
+                JOptionPane.showMessageDialog(this, "Cotización para " + seleccionado.getNombre() + ": " + costo, "Resultado", JOptionPane.PLAIN_MESSAGE);
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Ancho y alto deben ser números", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Ancho y alto deben ser números", "Error", JOptionPane.PLAIN_MESSAGE);
             }
         }
     }
