@@ -10,6 +10,8 @@ public class MainWindow extends JFrame {
 
     private AppController controller = new AppController();
     private JPanel buttonsContainer;
+    private JLabel screenTitleLabel;
+    private JLabel smallLogoLabel;
 
     public MainWindow() {
         setTitle("Sistema de Cotizaciones");
@@ -20,6 +22,17 @@ public class MainWindow extends JFrame {
         Container cp = getContentPane();
         cp.setLayout(new BorderLayout());
         cp.setBackground(Color.BLACK);
+
+        // Top bar: small logo (5x5) + screen title, grey background
+        JPanel topBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 6));
+        topBar.setBackground(new Color(200,200,200));
+        topBar.setPreferredSize(new Dimension(getWidth(), 28));
+        JLabel smallLogo = createSmallLogoLabel();
+        topBar.add(smallLogo);
+        JLabel screenTitle = new JLabel("Inicio");
+        screenTitle.setFont(new Font("SansSerif", Font.BOLD, 12));
+        topBar.add(screenTitle);
+        cp.add(topBar, BorderLayout.NORTH);
 
         // Center panel: logo centered and buttons in column
         JPanel center = new JPanel();
@@ -33,13 +46,10 @@ public class MainWindow extends JFrame {
         logoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         center.add(logoLabel);
 
-        // Title under logo
-        JLabel title = new JLabel("Sistema de Cotizaciones");
-        title.setForeground(Color.WHITE);
-        title.setFont(new Font("SansSerif", Font.BOLD, 22));
-        title.setAlignmentX(Component.CENTER_ALIGNMENT);
-        title.setBorder(BorderFactory.createEmptyBorder(10,0,20,0));
-        center.add(title);
+        // add space between logo and buttons
+        center.add(Box.createVerticalStrut(40));
+
+        // (title removed - window already has title)
 
         // Buttons container (will be rebuilt according to login state)
         buttonsContainer = new JPanel();
@@ -49,10 +59,13 @@ public class MainWindow extends JFrame {
 
         center.add(buttonsContainer);
 
-        // Build initial buttons
-        rebuildButtons();
-
+        // add center to content pane
         cp.add(center, BorderLayout.CENTER);
+
+        // Build initial buttons and set screen title reference
+        this.screenTitleLabel = screenTitle;
+        this.smallLogoLabel = smallLogo;
+        rebuildButtons();
 
         setVisible(true);
     }
@@ -65,38 +78,35 @@ public class MainWindow extends JFrame {
         Color negativeRed = new Color(0xFF, 0x44, 0x44);
 
         if (!controller.isAppLoggedIn()) {
-            JButton iniciarBtn = styledButton("Iniciar sesión", neutral);
+            // When not logged in: show green "Iniciar sesión" and red "Salir"
+            JButton iniciarBtn = styledButtonWithBorder("✅ Iniciar sesión", Color.BLACK, Color.WHITE);
             iniciarBtn.addActionListener(e -> onAppLogin());
-            JButton salirBtn = styledButton("Salir", negativeRed);
+            JButton salirBtn = styledButtonWithBorder("⛔ Salir", Color.BLACK, Color.WHITE);
             salirBtn.addActionListener(e -> System.exit(0));
 
             buttonsContainer.add(iniciarBtn);
             buttonsContainer.add(Box.createVerticalStrut(10));
             buttonsContainer.add(salirBtn);
+            screenTitleLabel.setText("Inicio");
         } else {
-            JButton registrarCliente = styledButton("Registrar cliente", confirmGreen);
+            // After login: show Registrar cliente and Generar cotización in black with white borders
+            JButton registrarCliente = styledButtonWithBorder("📝 Registrar cliente", Color.BLACK, Color.WHITE);
+            registrarCliente.setForeground(Color.WHITE);
             registrarCliente.addActionListener(e -> onRegistrar());
 
-            JButton generarCot = styledButton("Generar cotización", neutral);
+            JButton generarCot = styledButtonWithBorder("💲 Generar cotización", Color.BLACK, Color.WHITE);
+            generarCot.setForeground(Color.WHITE);
             generarCot.addActionListener(e -> onGenerarCotizacion());
 
-            JButton cerrarSesion = styledButton("Cerrar sesión", neutral);
-            cerrarSesion.addActionListener(e -> {
-                controller.appLogout();
-                rebuildButtons();
-                JOptionPane.showMessageDialog(this, "Sesión cerrada", "Info", JOptionPane.INFORMATION_MESSAGE);
-            });
-
-            JButton salirBtn = styledButton("Salir", negativeRed);
+            JButton salirBtn = styledButtonWithBorder("⛔ Salir", Color.BLACK, Color.WHITE);
             salirBtn.addActionListener(e -> System.exit(0));
 
             buttonsContainer.add(registrarCliente);
             buttonsContainer.add(Box.createVerticalStrut(10));
             buttonsContainer.add(generarCot);
             buttonsContainer.add(Box.createVerticalStrut(10));
-            buttonsContainer.add(cerrarSesion);
-            buttonsContainer.add(Box.createVerticalStrut(10));
             buttonsContainer.add(salirBtn);
+            screenTitleLabel.setText("Principal");
         }
 
         buttonsContainer.revalidate();
@@ -129,19 +139,31 @@ public class MainWindow extends JFrame {
 
     private void onAppLogin() {
         JPanel p = new JPanel(new GridLayout(0,1));
+        p.setBackground(Color.BLACK);
         JTextField userF = new JTextField();
         JPasswordField passF = new JPasswordField();
-        p.add(new JLabel("Usuario:")); p.add(userF);
-        p.add(new JLabel("Contraseña:")); p.add(passF);
 
-        int res = JOptionPane.showConfirmDialog(this, p, "Iniciar sesión", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-        if (res == JOptionPane.OK_OPTION) {
+        JLabel userLbl = new JLabel("Usuario:");
+        userLbl.setForeground(Color.WHITE);
+        JLabel passLbl = new JLabel("Clave:");
+        passLbl.setForeground(Color.WHITE);
+
+        userF.setBackground(new Color(30,30,30)); userF.setForeground(Color.WHITE);
+        passF.setBackground(new Color(30,30,30)); passF.setForeground(Color.WHITE);
+
+        p.add(userLbl); p.add(userF);
+        p.add(passLbl); p.add(passF);
+
+        Object[] options = {"Acceder", "Cancelar"};
+        int res = JOptionPane.showOptionDialog(this, p, "Ingreso", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+        if (res == JOptionPane.YES_OPTION) {
             boolean ok = controller.appLogin(userF.getText().trim(), new String(passF.getPassword()));
             if (ok) {
                 JOptionPane.showMessageDialog(this, "Bienvenido, " + controller.getAppUser(), "Éxito", JOptionPane.INFORMATION_MESSAGE);
                 rebuildButtons();
+            } else {
+                JOptionPane.showMessageDialog(this, "Credenciales incorrectas", "Error", JOptionPane.ERROR_MESSAGE);
             }
-            else JOptionPane.showMessageDialog(this, "Credenciales incorrectas", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -199,6 +221,22 @@ public class MainWindow extends JFrame {
         }
     }
 
+    private JLabel createSmallLogoLabel() {
+        String path = "src/main/resources/assets/logo/logo.png";
+        File f = new File(path);
+        JLabel lbl = new JLabel();
+        if (f.exists()) {
+            ImageIcon icon = new ImageIcon(path);
+            Image img = icon.getImage().getScaledInstance(5, 5, Image.SCALE_SMOOTH);
+            lbl.setIcon(new ImageIcon(img));
+        } else {
+            lbl.setPreferredSize(new Dimension(5,5));
+            lbl.setOpaque(true);
+            lbl.setBackground(Color.DARK_GRAY);
+        }
+        return lbl;
+    }
+
     private JButton styledButton(String text, Color bg) {
         JButton b = new JButton(text);
         b.setBackground(bg);
@@ -209,6 +247,21 @@ public class MainWindow extends JFrame {
         b.setAlignmentX(Component.CENTER_ALIGNMENT);
         b.setMaximumSize(new Dimension(300, 40));
         Border line = new LineBorder(Color.DARK_GRAY, 2, true);
+        Border empty = new EmptyBorder(8,12,8,12);
+        b.setBorder(new CompoundBorder(line, empty));
+        return b;
+    }
+
+    private JButton styledButtonWithBorder(String text, Color bg, Color borderColor) {
+        JButton b = new JButton(text);
+        b.setBackground(bg);
+        b.setForeground(Color.WHITE);
+        b.setFocusPainted(false);
+        b.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        b.setOpaque(true);
+        b.setAlignmentX(Component.CENTER_ALIGNMENT);
+        b.setMaximumSize(new Dimension(300, 40));
+        Border line = new LineBorder(borderColor, 2, true);
         Border empty = new EmptyBorder(8,12,8,12);
         b.setBorder(new CompoundBorder(line, empty));
         return b;
