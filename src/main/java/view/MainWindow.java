@@ -14,7 +14,6 @@ public class MainWindow extends JFrame {
     private AppController controller = new AppController();
     private JPanel buttonsContainer;
     private JLabel screenTitleLabel;
-    private JLabel smallLogoLabel;
 
     public MainWindow() {
         setTitle("Sistema de Cotizaciones");
@@ -67,7 +66,6 @@ public class MainWindow extends JFrame {
 
         // Build initial buttons and set screen title reference
         this.screenTitleLabel = screenTitle;
-        this.smallLogoLabel = smallLogo;
         rebuildButtons();
 
         setVisible(true);
@@ -75,10 +73,6 @@ public class MainWindow extends JFrame {
 
     private void rebuildButtons() {
         buttonsContainer.removeAll();
-
-        Color confirmGreen = new Color(0x00, 0xFF, 0x66);
-        Color neutral = new Color(70,70,70);
-        Color negativeRed = new Color(0xFF, 0x44, 0x44);
 
         if (!controller.isAppLoggedIn()) {
             // When not logged in: show green "Iniciar sesión" and red "Salir"
