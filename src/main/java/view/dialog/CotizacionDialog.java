@@ -2,6 +2,7 @@ package view.dialog;
 
 import controller.AppController;
 import model.Cliente;
+import model.MaterialItem;
 import view.UIStyle;
 
 import javax.swing.*;
@@ -17,7 +18,7 @@ public class CotizacionDialog extends JDialog {
     private DefaultTableModel model;
     private JTextField anchoF;
     private JTextField altoF;
-    private JTextField materialF;
+    private JComboBox<String> materialCombo;
     private JTextField tipoF;
 
     public CotizacionDialog(Window owner, AppController controller) {
@@ -76,19 +77,22 @@ public class CotizacionDialog extends JDialog {
 
         JTextField anchoF = new JTextField();
         JTextField altoF = new JTextField();
-        JTextField materialF = new JTextField();
+        JComboBox<String> materialCombo = new JComboBox<>();
+        for (MaterialItem m : controller.listarMateriales()) {
+            materialCombo.addItem(m.getMaterial());
+        }
         JTextField tipoF = new JTextField();
 
         this.anchoF = anchoF;
         this.altoF = altoF;
-        this.materialF = materialF;
+        this.materialCombo = materialCombo;
         this.tipoF = tipoF;
 
         p.add(new JLabel("Cliente:")); p.add(clienteCombo);
         p.add(new JLabel("Datos del cliente:")); p.add(tableScroll);
         p.add(new JLabel("Ancho:")); p.add(anchoF);
         p.add(new JLabel("Alto:")); p.add(altoF);
-        p.add(new JLabel("Material:")); p.add(materialF);
+        p.add(new JLabel("Material:")); p.add(materialCombo);
         p.add(new JLabel("Tipo de impresión:")); p.add(tipoF);
         root.add(p, BorderLayout.CENTER);
 
@@ -122,8 +126,13 @@ public class CotizacionDialog extends JDialog {
 
             double ancho = Double.parseDouble(anchoF.getText().trim());
             double alto = Double.parseDouble(altoF.getText().trim());
-            String material = materialF.getText().trim();
+            String material = (String) materialCombo.getSelectedItem();
             String tipo = tipoF.getText().trim();
+
+            if (material == null || material.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(getOwner(), "Debes seleccionar un material", "Validación", JOptionPane.PLAIN_MESSAGE);
+                return;
+            }
 
             double costo = controller.cotizar(ancho, alto, material, tipo);
             JOptionPane.showMessageDialog(getOwner(), "Cotización para " + seleccionado.getNombre() + ": " + costo, "Resultado", JOptionPane.PLAIN_MESSAGE);

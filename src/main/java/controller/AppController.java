@@ -2,8 +2,11 @@ package controller;
 
 import model.Cliente;
 import model.CostosMateriaPrima;
+import model.MaterialItem;
 import repository.ClienteRepository;
 import repository.FileClienteRepository;
+import repository.FileMaterialRepository;
+import repository.MaterialRepository;
 import util.EnvLoader;
 import util.Validaciones;
 
@@ -12,6 +15,7 @@ import java.util.List;
 public class AppController {
     private final CostosMateriaPrima costos;
     private final ClienteRepository clienteRepository;
+    private final MaterialRepository materialRepository;
 
     private double costo_tinta = 0;
     private double porcentaje_perdida = 0;
@@ -21,6 +25,8 @@ public class AppController {
     public AppController() {
         costos = new CostosMateriaPrima();
         clienteRepository = new FileClienteRepository();
+        materialRepository = new FileMaterialRepository();
+        sincronizarCostosDesdeInventario();
     }
 
     public boolean appLogin(String usuario, String contrasena) {
@@ -87,5 +93,37 @@ public class AppController {
 
     public double cotizar(double ancho, double alto, String material, String tipo_impresion) {
         return Cotizador.calcular_costo(ancho, alto, material, costo_tinta, porcentaje_perdida, costos);
+    }
+
+    public List<MaterialItem> listarMateriales() {
+        return materialRepository.listar();
+    }
+
+    public boolean agregarMaterial(String material, double ancho, double largo, int stock, double precioPorHoja) {
+        if (material == null || material.trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del material es obligatorio");
+        }
+        if (ancho <= 0 || largo <= 0) {
+            throw new IllegalArgumentException("Ancho y largo deben ser mayores que cero");
+        }
+        if (stock < 0) {
+            throw new IllegalArgumentException("El stock no puede ser negativo");
+        }
+        if (precioPorHoja <= 0) {
+            throw new IllegalArgumentException("El precio por hoja debe ser mayor que cero");
+        }
+
+        MaterialItem item = new MaterialItem(material.trim(), ancho, largo, stock, precioPorHoja);
+        boolean saved = materialRepository.guardar(item);
+        if (saved) {
+            costos.actualizar_costo(item.getMaterial(), item.getPrecioPorHoja());
+        }
+        return saved;
+    }
+
+    private void sincronizarCostosDesdeInventario() {
+        for (MaterialItem m : materialRepository.listar()) {
+            costos.actualizar_costo(m.getMaterial(), m.getPrecioPorHoja());
+        }
     }
 }

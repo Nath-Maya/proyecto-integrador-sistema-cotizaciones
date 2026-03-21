@@ -3,6 +3,7 @@ package view;
 import controller.AppController;
 import view.dialog.ClienteFormDialog;
 import view.dialog.CotizacionDialog;
+import view.dialog.InventoryControlDialog;
 import view.dialog.LoginDialog;
 import javax.swing.*;
 import java.awt.*;
@@ -90,12 +91,17 @@ public class MainWindow extends JFrame {
             JButton generarCot = UIStyle.createMainButton("💲 Generar cotización");
             generarCot.addActionListener(e -> openCotizacionDialog());
 
+            JButton inventarioBtn = UIStyle.createMainButton("📦 Control inventario");
+            inventarioBtn.addActionListener(e -> openInventoryDialog());
+
             JButton salirBtn = UIStyle.createMainButton("⛔ Salir");
             salirBtn.addActionListener(e -> System.exit(0));
 
             buttonsContainer.add(registrarCliente);
             buttonsContainer.add(Box.createVerticalStrut(10));
             buttonsContainer.add(generarCot);
+            buttonsContainer.add(Box.createVerticalStrut(10));
+            buttonsContainer.add(inventarioBtn);
             buttonsContainer.add(Box.createVerticalStrut(10));
             buttonsContainer.add(salirBtn);
             screenTitleLabel.setText("Principal");
@@ -121,6 +127,11 @@ public class MainWindow extends JFrame {
 
     private void openCotizacionDialog() {
         CotizacionDialog dialog = new CotizacionDialog(this, controller);
+        dialog.setVisible(true);
+    }
+
+    private void openInventoryDialog() {
+        InventoryControlDialog dialog = new InventoryControlDialog(this, controller);
         dialog.setVisible(true);
     }
 
