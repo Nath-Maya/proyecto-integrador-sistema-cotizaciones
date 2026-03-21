@@ -348,8 +348,11 @@ public class CotizacionDialog extends JDialog {
         double costoImpresion;
         if ("Offset".equals(tipoImpresion)) {
             costoImpresion = (cantidadImpresiones / 3000.0) * 45000.0;
+            if (costoImpresion < 13500.0) {
+                costoImpresion = 13500.0;
+            }
         } else {
-            costoImpresion = cantidadImpresiones * 250.0;
+            costoImpresion = cantidadImpresiones * 90.0;
         }
 
         double costoMaterial = cantidadHojas * material.getPrecioPorHoja();
@@ -377,10 +380,16 @@ public class CotizacionDialog extends JDialog {
     private int parseCantidad() {
         Object raw = resumenModel.getValueAt(0, 0);
         String texto = raw == null ? "" : raw.toString().trim();
-        if (!texto.matches("\\d+")) {
+        String normalizado = texto.replaceAll("[^0-9]", "");
+        if (normalizado.isEmpty()) {
             throw new IllegalArgumentException("La cantidad debe ser un número entero positivo");
         }
-        int cantidad = Integer.parseInt(texto);
+        int cantidad;
+        try {
+            cantidad = Integer.parseInt(normalizado);
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("La cantidad debe ser un número entero positivo");
+        }
         if (cantidad <= 0) {
             throw new IllegalArgumentException("La cantidad debe ser mayor que cero");
         }
